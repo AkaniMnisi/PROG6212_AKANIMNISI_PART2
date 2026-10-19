@@ -1,0 +1,95 @@
+﻿@page "/dashboard"
+@using SmartX_System.Models
+@inject HttpClient Http
+
+<h3 class="mt-4">Live Telemetry Dashboard</h3>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">Sensor Registration</div>
+            <div class="card-body">
+                <button class="btn btn-primary w-100 mb-3" @onclick="SimulateIngestion">Simulate Data Ingestion</button>
+                
+                <label class="form-label">Attach Config/Log to Sensor Profile:</label>
+                <InputFile OnChange="HandleFileUpload" class="form-control" />
+                <small class="text-muted">Upload hardware logs or deployment photos.</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">Telemetry Feed</div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Sensor ID</th>
+                            <th>Payload Value</th>
+                            <th>Status</th>
+                            <th>Attachments</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (packets != null)
+                        {
+                            @foreach (var packet in packets)
+                            {
+                                <tr class="@(packet.Payload.ToString() == "SPIKE" ? "table-danger" : "")">
+                                    <td>@packet.SensorId</td>
+                                    <td>@packet.Payload</td>
+                                    <td>@(packet.Payload.ToString() == "SPIKE" ? "Anomaly Detected" : "Normal")</td>
+                                    <td>
+                                        @if(packet.AttachedLogs.Any()) { <span>📎 Log Attached</span> }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    
+    private List<TelemetryPacket<object>> packets = new();
+
+    private async Task SimulateIngestion()
+    {
+        var newPacket = new TelemetryPacket<object>
+        {
+            SensorId = Guid.NewGuid().ToString().Substring(0, 8),
+            MacAddress = "00:1B:44:11:3A:B7",
+            Location = "Sub-Zone B", 
+            Category = "Environmental",
+            Payload = new Random().Next(0, 100) > 80 ? "SPIKE" : "25.5" 
+        };
+
+        var response = await Http.PostAsJsonAsync("api/telemetry/ingest", newPacket);
+        if (response.IsSuccessStatusCode)
+        {
+            packets.Add(newPacket);
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            using var content = new MultipartFormDataContent();
+            var fileContent = new StreamContent(file.OpenReadStream());
+            content.Add(fileContent, "file", file.Name);
+            content.Add(new StringContent("00:1B:44:11:3A:B7"), "sensorMac");
+
+            await Http.PostAsync("api/telemetry/upload", content);
+            var packet = packets.FirstOrDefault(p => p.MacAddress == "00:1B:44:11:3A:B7");
+            if (packet != null) packet.AttachedLogs.Add(file.Name);
+            StateHasChanged();
+        }
+    }
+}
