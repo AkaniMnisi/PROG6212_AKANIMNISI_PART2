@@ -1,5 +1,0 @@
-<Solution>
-  <Project Path="SmartX System/SmartX System.csproj" />
-  <Project Path="SmartX.Clients/SmartX.Clients.csproj" Id="9b260ddf-241b-4127-9209-417d44a3b07e" />
-  <Project Path="SmartX.Shared/SmartX.Shared.csproj" />
-</Solution>
