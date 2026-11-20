@@ -1,0 +1,54 @@
+﻿@{
+    ViewData["Title"] = "Create Event";
+}
+
+<div class="container mt-4">
+    <h2>Create a New Event</h2>
+    <hr />
+    
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-action="CreateEvent" method="post" enctype="multipart/form-data">
+                
+                <div class="form-group mb-3">
+                    <label class="control-label">Event Name</label>
+                    <input type="text" name="name" class="form-control" required />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="control-label">Description</label>
+                    <textarea name="description" class="form-control" rows="3"></textarea>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="control-label">Date and Time</label>
+                    <input type="datetime-local" name="date" class="form-control" required />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="control-label">Location</label>
+                    <input type="text" name="location" class="form-control" required />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="control-label">Distance (e.g. 5km, 21km)</label>
+                    <input type="text" name="distance" class="form-control" required />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="control-label">Event Type</label>
+                    <input type="text" name="eventType" class="form-control" required />
+                </div>
+
+                <div class="form-group mb-4">
+                    <label class="control-label">Event Banner Image</label>
+                    <input type="file" name="imageFile" class="form-control" accept="image/*" />
+                </div>
+
+                <div class="form-group">
+                    <input type="submit" value="Create Event" class="btn btn-primary w-100" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

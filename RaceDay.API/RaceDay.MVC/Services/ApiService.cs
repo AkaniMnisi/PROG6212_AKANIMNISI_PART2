@@ -32,4 +32,21 @@ namespace RaceDay.MVC.Services
             return await response.Content.ReadAsStringAsync();
         }
     }
-}
+     
+        public async Task<HttpResponseMessage> UploadImageAsync(Stream fileStream, string fileName)
+        {
+            using var content = new MultipartFormDataContent();
+            var fileContent = new StreamContent(fileStream);
+            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
+            content.Add(fileContent, "file", fileName);
+
+            return await _httpClient.PostAsync($"{_apiBaseUrl}Events/upload", content);
+        }
+
+       
+        public async Task<HttpResponseMessage> CreateEventAsync(object eventData)
+        {
+            var content = new StringContent(JsonSerializer.Serialize(eventData), Encoding.UTF8, "application/json");
+            return await _httpClient.PostAsync($"{_apiBaseUrl}Events", content);
+        }
+    }

@@ -1,64 +1,63 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using RaceDay.API.Data;
-using RaceDay.API.Models;
+using RaceDay.API.Data; 
+using RaceDay.API.Models; 
+using Azure.Storage.Blobs; 
+using Microsoft.AspNetCore.Http; 
 
-namespace RaceDay.API.Controllers;
-
-[ApiController]
-[Route("api/[controller]")]
-public class EventsController : ControllerBase
+namespace RaceDay.API.Controllers
 {
-    private readonly RaceDayContext _context;
-    public EventsController(RaceDayContext context) => _context = context;
-
-    [HttpGet]
-    public async Task<IActionResult> GetEvents()
+    [Route("api/[controller]")]
+    [ApiController]
+    public class EventsController : ControllerBase
     {
-        return Ok(await _context.Events.ToListAsync());
-    }
+        private readonly RaceDayContext _context;
 
-    [HttpPost]
-    public async Task<IActionResult> CreateEvent(Event newEvent)
-    {
-        if (HttpContext.Session.GetString("UserRole") != "Organiser")
-            return Unauthorized("Only Organisers can create events.");
+        private readonly IConfiguration _configuration; 
 
-        _context.Events.Add(newEvent);
-        await _context.SaveChangesAsync();
-        return Ok(newEvent);
-    }
+      
+        public EventsController(RaceDayContext context, IConfiguration configuration)
+        {
+            _context = context;
+            _configuration = configuration;
+        }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateEvent(int id, Event updatedEvent)
-    {
-        if (HttpContext.Session.GetString("UserRole") != "Organiser")
-            return Unauthorized();
+     
 
-        var ev = await _context.Events.FindAsync(id);
-        if (ev == null) return NotFound();
+    
+        [HttpPost("upload")]
+        public async Task<IActionResult> UploadImage(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded.");
 
-        ev.Name = updatedEvent.Name;
-        ev.Description = updatedEvent.Description;
-        ev.Date = updatedEvent.Date;
-        ev.Location = updatedEvent.Location;
-        ev.EventType = updatedEvent.EventType;
+            try
+            {
+               
+                var connectionString = _configuration.GetConnectionString("AzureStorage");
 
-        await _context.SaveChangesAsync();
-        return Ok(ev);
-    }
+               
+                var blobServiceClient = new BlobServiceClient(connectionString);
+                var containerClient = blobServiceClient.GetBlobContainerClient("event-images");
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteEvent(int id)
-    {
-        if (HttpContext.Session.GetString("UserRole") != "Organiser")
-            return Unauthorized();
+                
+                await containerClient.CreateIfNotExistsAsync();
 
-        var ev = await _context.Events.FindAsync(id);
-        if (ev == null) return NotFound();
+               
+                var blobName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                var blobClient = containerClient.GetBlobClient(blobName);
 
-        _context.Events.Remove(ev);
-        await _context.SaveChangesAsync();
-        return Ok("Event deleted.");
+              
+                using var stream = file.OpenReadStream();
+                await blobClient.UploadAsync(stream, true);
+
+               
+                return Ok(new { ImageUrl = blobClient.Uri.ToString() });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 }
