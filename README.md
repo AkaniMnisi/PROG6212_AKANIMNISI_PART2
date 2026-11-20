@@ -1,3 +1,15 @@
+# PROG6212 POE - Part 3
+**Student Name:** Akani Mnisi
+**Student Number:** ST10456371
+
+This repository contains the code for Part 3 of the POE, including the MVC frontend, Azure Blob Storage integration, and Dockerfile.
+## Docker Setup
+To run the MVC application via Docker:
+1. Build the image: `docker build -t raceday-mvc .`
+2. Run the container: `docker run -d -p 8080:8080 --name raceday-container raceday-mvc`
+
+
+
 # PROG6212 Part 2 - RaceDay API
 
 ## Project Overview
