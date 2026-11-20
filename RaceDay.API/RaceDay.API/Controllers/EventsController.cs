@@ -20,14 +20,14 @@ namespace RaceDay.API.Controllers
             _configuration = configuration;
         }
 
-        // 1. GET ALL EVENTS (This was missing, causing the 404 error)
+     
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Event>>> GetEvents()
         {
             return await _context.Events.ToListAsync();
         }
 
-        // 2. GET A SINGLE EVENT BY ID
+        
         [HttpGet("{id}")]
         public async Task<ActionResult<Event>> GetEvent(int id)
         {
@@ -41,7 +41,7 @@ namespace RaceDay.API.Controllers
             return @event;
         }
 
-        // 3. CREATE A NEW EVENT (Used by the MVC Organiser form)
+       
         [HttpPost]
         public async Task<ActionResult<Event>> PostEvent(Event @event)
         {
@@ -51,7 +51,7 @@ namespace RaceDay.API.Controllers
             return CreatedAtAction("GetEvent", new { id = @event.Id }, @event);
         }
 
-        // 4. UPLOAD IMAGE TO AZURE BLOB STORAGE
+        
         [HttpPost("upload")]
         public async Task<IActionResult> UploadImage(IFormFile file)
         {
@@ -64,18 +64,18 @@ namespace RaceDay.API.Controllers
                 var blobServiceClient = new BlobServiceClient(connectionString);
                 var containerClient = blobServiceClient.GetBlobContainerClient("event-images");
 
-                // Ensure container exists
+                
                 await containerClient.CreateIfNotExistsAsync();
 
-                // Create unique file name
+                
                 var blobName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
                 var blobClient = containerClient.GetBlobClient(blobName);
 
-                // Upload
+               
                 using var stream = file.OpenReadStream();
                 await blobClient.UploadAsync(stream, true);
 
-                // Return the URL
+             
                 return Ok(new { ImageUrl = blobClient.Uri.ToString() });
             }
             catch (Exception ex)
