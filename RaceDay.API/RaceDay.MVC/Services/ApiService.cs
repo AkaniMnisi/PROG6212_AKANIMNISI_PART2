@@ -42,5 +42,12 @@ namespace RaceDay.MVC.Services
             var content = new StringContent(JsonSerializer.Serialize(eventData), Encoding.UTF8, "application/json");
             return await _httpClient.PostAsync($"{_apiBaseUrl}Events", content);
         }
+
+        public async Task<HttpResponseMessage> EnrolInEventAsync(int eventId, string userEmail)
+        {
+            var enrolData = new { EventId = eventId, ParticipantEmail = userEmail };
+            var content = new StringContent(JsonSerializer.Serialize(enrolData), Encoding.UTF8, "application/json");
+            return await _httpClient.PostAsync($"{_apiBaseUrl}Enrolments", content);
+        }
     }
 }

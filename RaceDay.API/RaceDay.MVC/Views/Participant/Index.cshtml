@@ -1,0 +1,65 @@
+﻿@model List<Dictionary<string, object>>
+@{
+    ViewData["Title"] = "Upcoming Events";
+}
+
+<div class="container mt-4">
+    <h1 class="display-4">Upcoming Events</h1>
+    <p class="lead">Browse the latest races and enrol today!</p>
+    
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["Error"]
+        </div>
+    }
+
+    <hr />
+
+    @if (Model == null || Model.Count == 0)
+    {
+        <div class="alert alert-info">There are no upcoming events at the moment. Check back later!</div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var ev in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm h-100">
+                        
+                        <!-- Display the Azure Blob Image -->
+                        @if (ev.ContainsKey("imageUrl") && ev["imageUrl"] != null && ev["imageUrl"].ToString() != "")
+                        {
+                            <img src="@ev["imageUrl"]" class="card-img-top" alt="Event Image" style="height: 200px; object-fit: cover;">
+                        }
+                        else
+                        {
+                            <img src="https://via.placeholder.com/300x200?text=No+Image" class="card-img-top" alt="No Image" style="height: 200px; object-fit: cover;">
+                        }
+                        
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">@ev["name"]</h5>
+                            
+                            <p class="card-text text-muted small">
+                                <strong>Date:</strong> @Convert.ToDateTime(ev["date"]).ToString("dd MMM yyyy")<br />
+                                <strong>Location:</strong> @ev["location"]<br />
+                                <strong>Distance:</strong> @ev["distance"]
+                            </p>
+                            
+                            <p class="card-text">@ev["description"]</p>
+                            
+                            <!-- The Enrol Form -->
+                            <div class="mt-auto">
+                                <form asp-action="Enrol" method="post">
+                                    <input type="hidden" name="eventId" value="@ev["id"]" />
+                                    <button type="submit" class="btn btn-primary w-100">Enrol Now</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
